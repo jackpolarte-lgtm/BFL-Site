@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Player Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--home:#09090B;--bg:#09090B;--panel:#262626;--line:#3a3a3a;--text:#f2f2f2;--mute:#9a9a9a;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--gold1:#f6d56b;--gold2:#e0a93a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font-family:Inter,Arial,sans-serif;color:var(--text);background:var(--home);min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid #8ab4f8;outline-offset:2px}
+
+/* HOME */
+#home{position:relative;display:flex;flex-direction:column;align-items:center;padding:18vh 16px 40px}
+.logo{font-size:clamp(44px,9vw,88px);font-weight:700;letter-spacing:-2px;margin:0 0 32px;line-height:1}
+.logo img{display:block;width:clamp(160px,32vw,280px);height:auto}
+.acct{position:absolute;top:16px;right:16px;display:flex;gap:8px}
+.acct [hidden]{display:none}
+.acct #signout{padding:8px 14px;color:var(--mute);font-weight:500}
+.acct button{display:flex;align-items:center;gap:10px;background:#2b2b2b;border:1px solid #4a4a4a;border-radius:24px;padding:5px 16px 5px 5px;font-size:14px;font-weight:600}
+.acct button:hover{background:#333}
+.acct i{width:30px;height:30px;border-radius:50%;background:var(--gold1);color:#3a2a08;display:grid;place-items:center;font-style:normal;font-weight:700}
+#login{border:1px solid #4a4a4a;border-radius:16px;background:#2b2b2b;color:var(--text);padding:24px;width:min(92vw,380px)}
+#login::backdrop{background:rgba(0,0,0,.6)}
+#login h2{margin:0 0 6px;font-size:20px}
+#login p{color:var(--mute);font-size:13px;margin:0 0 16px}
+#login input{width:100%;height:44px;border-radius:10px;border:1px solid #555;background:#1e1e1e;color:var(--text);padding:0 12px;font:inherit}
+#lerr{color:#f0c674;min-height:20px;font-size:13px;margin:8px 0}
+.lbtn{display:flex;justify-content:flex-end;gap:8px}
+.lbtn button{border-radius:10px;border:1px solid #555;background:#1e1e1e;padding:9px 16px;font-weight:600}
+.lbtn .go{background:var(--gold1);color:#3a2a08;border-color:var(--gold1)}
+.sbox{position:relative;width:min(100%,720px)}
+.sbar{display:flex;align-items:center;gap:12px;background:#fff;color:#202124;border-radius:28px;padding:0 12px 0 20px;height:56px;box-shadow:0 1px 6px rgba(0,0,0,.35)}
+.sbar input{flex:1;border:0;outline:0;background:none;font:inherit;font-size:16px;color:#202124;min-width:0;height:100%}
+.sbar input::placeholder{color:#80868b}
+.sbar button{border:0;background:#f1f3f4;color:#202124;border-radius:18px;padding:8px 14px;font-weight:600;font-size:14px}
+.sug{position:absolute;left:0;right:0;top:62px;background:#fff;color:#202124;border-radius:20px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:5;display:none}
+.sug.on{display:block}
+.sug button{display:flex;justify-content:space-between;width:100%;border:0;background:none;padding:12px 20px;text-align:left;color:#202124}
+.sug button:hover,.sug button.act{background:#f1f3f4}
+.sug small{color:#80868b}
+.quick{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin-top:36px}
+.quick button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:8px;width:96px;font-size:13px}
+.quick i{width:48px;height:48px;border-radius:50%;background:#2b2b2b;display:grid;place-items:center;font-style:normal;font-weight:600;font-size:18px}
+#msg{margin-top:24px;color:#f0c674;min-height:22px;text-align:center}
+
+/* PROFILE */
+#profile{display:none;background:var(--bg);min-height:100vh;padding:24px clamp(16px,3vw,40px) 48px}
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.back{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 14px;font-size:14px}
+.top h1{font-family:'Space Mono',monospace;font-size:clamp(28px,5vw,48px);margin:0;font-weight:700}
+.main{display:grid;grid-template-columns:auto 1fr 1.3fr;gap:32px;padding:28px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.card{width:200px;height:270px;border-radius:14px 14px 40px 40px;background:linear-gradient(160deg,var(--gold1),var(--gold2));color:#3a2a08;position:relative;padding:14px 0;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.card .ovr{position:absolute;left:16px;top:14px;font-size:34px;font-weight:700;line-height:1;text-align:center}
+.card .ovr small{display:block;font-size:14px;font-weight:700}
+.card svg,.card img{width:120px;height:120px;margin:10px auto 0;display:block;object-fit:cover}
+.card .cn{font-weight:700;font-size:17px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 10px}
+.card .cs{display:flex;justify-content:space-around;margin-top:8px;padding:0 10px;border-top:1px solid rgba(58,42,8,.3);padding-top:6px}
+.card .cs div{font-size:10px;font-weight:600}
+.card .cs b{display:block;font-size:15px}
+.card .meta{font-size:11px;margin-top:6px;font-weight:600}
+.name{font-family:'Space Mono',monospace;font-size:clamp(32px,5vw,48px);margin:0 0 20px;word-break:break-all}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;max-width:340px}
+.k{font-family:'Space Mono',monospace;color:var(--mute);font-size:13px;letter-spacing:.5px}
+.v{font-family:'Space Mono',monospace;font-size:18px;margin-top:2px}
+.stars{color:var(--gold1);letter-spacing:2px}.stars .off{color:#555}
+.roles{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.role{border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:13px;background:var(--panel)}
+.role b{font-weight:600}.role em{font-style:normal;color:var(--green);font-weight:700}
+.ps h3{font-family:'Space Mono',monospace;font-size:18px;margin:0 0 10px;font-weight:700}
+.ps h3:not(:first-child){margin-top:22px}
+.ps h3 i{font-style:normal;color:var(--gold1)}.ps h3 i.s{color:#aaa}
+.pills{display:flex;flex-wrap:wrap;gap:10px}
+.pill{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;text-transform:uppercase}
+.pill.plus{border-color:#6b5a22}
+.cats{display:grid;grid-template-columns:repeat(6,1fr);gap:24px;padding-top:32px}
+.cat h4{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:17px;margin:0 0 14px;text-transform:uppercase}
+.row{margin-bottom:12px}
+.row div{display:flex;justify-content:space-between;font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.4px;gap:6px}
+.row div b{color:var(--text);font-weight:600}
+.bar{height:3px;background:#383838;margin-top:3px;border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%}
+.notfound{color:var(--mute)}
+@media(max-width:1100px){.cats{grid-template-columns:repeat(3,1fr)}.main{grid-template-columns:auto 1fr}.ps{grid-column:1/-1}}
+@media(max-width:640px){.cats{grid-template-columns:1fr 1fr}.main{grid-template-columns:1fr;justify-items:start}}
+@media(max-width:420px){.cats{grid-template-columns:1fr}}
+#modbtn{background:var(--gold1);color:#3a2a08;border-color:var(--gold1)}
+#mod{border:1px solid #4a4a4a;border-radius:16px;background:#262626;color:var(--text);padding:20px;width:min(94vw,780px);max-height:90vh}
+#mod::backdrop{background:rgba(0,0,0,.65)}
+#mod .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+#mod h2{margin:0;font-size:20px}
+#mod label{display:block;font-size:12px;color:var(--mute)}
+#mod input,#mod select{display:block;width:100%;height:36px;margin-top:3px;border-radius:8px;border:1px solid #555;background:#1e1e1e;color:var(--text);padding:0 10px;font:inherit;font-size:14px}
+#mod input[type=color]{padding:2px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:12px 0}
+#mstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+#mstats fieldset{border:1px solid var(--line);border-radius:10px;padding:8px 10px 10px;display:grid;gap:6px}
+#mstats legend{font-weight:600;padding:0 6px}
+#mmsg{min-height:22px;margin:12px 0 4px;color:#f0c674;font-size:14px}
+.mbtn{display:flex;justify-content:space-between;gap:8px}
+#mod button{border-radius:10px;border:1px solid #555;background:#1e1e1e;padding:9px 16px;font-weight:600}
+#mod .go{background:var(--gold1);color:#3a2a08;border-color:var(--gold1)}
+#mod .danger{color:#ff8a80;border-color:#7a3b3b}
+/* search bar: #29292D with a 2px #59636E bevel */
+.sbar{background:#29292D;color:#f2f2f2;border:2px solid #59636E;box-shadow:0 1px 6px rgba(0,0,0,.5);padding-left:18px}
+.sbar:focus-within{border-color:#8a96a3}
+.sbar input{color:#f2f2f2}
+.sbar input::placeholder{color:#8b8f96}
+.sbar button{background:#3a3a40;color:#f2f2f2}
+.sug{background:#29292D;color:#f2f2f2;border:2px solid #59636E}
+.sug button{color:#f2f2f2}
+.sug button:hover,.sug button.act{background:#3a3a40}
+.sug small{color:#9a9fa6}
+/* card template */
+.card{width:240px;height:auto;aspect-ratio:560/778;border-radius:0;background:url(card.webp) center/100% 100% no-repeat;padding:0;box-shadow:none;filter:drop-shadow(0 10px 18px rgba(0,0,0,.55))}
+.card .ovr{left:15%;top:14%;font-size:30px}
+.card .av{position:absolute;left:50%;top:13%;width:54%;height:auto;aspect-ratio:1;margin:0;transform:translateX(-50%);object-fit:cover}
+.card .cn{position:absolute;left:0;right:0;top:62%;margin:0;font-size:18px}
+.card .cs{position:absolute;left:13%;right:13%;top:71%;margin:0;padding:6px 0 0}
+.card .meta{position:absolute;left:0;right:0;top:86%;margin:0}
+/* trophy cabinet */
+.cab{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:14px 10px;padding:14px 12px 0;border:1px solid #59636E;border-radius:10px;background:linear-gradient(#131317,#0d0d10)}
+.tro{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding-bottom:12px;border-bottom:3px solid #59636E}
+.tro b{font-size:12px;font-weight:600}
+.tro span{font-family:'Space Mono',monospace;color:var(--gold1);font-size:13px}
+.empty{grid-column:1/-1;color:var(--mute);margin:0 0 14px}
+/* diagonal stripes */
+body{background:#09090B}
+#profile{background:none}
+/* stripes drift to the right; one full step is 28.31px (stripe spacing measured sideways), so the loop has no jump */
+body::before{content:"";position:fixed;inset:-40px;z-index:-1;pointer-events:none;will-change:transform;
+  background:repeating-linear-gradient(129deg,#09090B 0 11px,#111115 11px 22px);animation:drift 2.4s linear infinite}
+@keyframes drift{to{transform:translateX(28.31px)}}
+@media (prefers-reduced-motion:reduce){body::before{animation:none}}
+/* card layout measured from the reference card */
+.card .ovr{left:14.6%;top:20.2%;transform:translate(-50%,-50%);font-size:44px;line-height:.9;z-index:2}
+.card .ovr small{font-size:19px;line-height:1;margin-top:5px}
+.card .av{left:22.3%;top:9.1%;width:74.6%;transform:none}
+.card .cn{top:69.4%;transform:translateY(-50%);line-height:1;padding:0 8%}
+.card .cs{left:4.7%;right:5.2%;top:73.7%;display:grid;grid-template-columns:repeat(6,1fr);text-align:center;border:0;padding:0}
+.card .cs div{font-size:14px;font-weight:700;line-height:1}
+.card .cs b{font-size:22px;line-height:1;margin-top:4px;font-weight:700}
+.card .meta{top:89.3%;transform:translateY(-50%);font-size:12px;line-height:1}
+/* mod menu button: dark pill, #343940 outline, muted caps */
+.acct #modbtn{height:46px;padding:0 20px;justify-content:center;background:#09090B;border:1.5px solid #343940;border-radius:999px;color:#3a3d42;font-family:Montserrat,Inter,Arial,sans-serif;font-size:19px;font-weight:700;text-transform:uppercase;line-height:1;letter-spacing:0}
+.acct #modbtn:hover{background:#09090B;color:#6a7078;border-color:#4a5058}
+@media(max-width:560px){.acct #modbtn{height:38px;padding:0 14px;font-size:13px}}
+/* profile bar */
+.acct #acct i{background-color:#1c1c21;color:#f2f2f2}
+.acct{align-items:center}
+.who{position:relative}
+.acct #acct{height:58px;padding:7px 20px 7px 8px;gap:14px;background:#0e0e11;border:1px solid #2c2c31;border-radius:999px;font-size:16px;font-weight:700}
+.acct #acct:hover{background:#141418;border-color:#3a3a40}
+.acct #acct i{position:relative;width:42px;height:42px;flex:none;margin-left:3px;box-shadow:0 0 0 2px #0e0e11,0 0 0 3.5px #ececee}
+.acct #acct.on i::after{content:"";position:absolute;right:-4px;bottom:-4px;width:13px;height:13px;border-radius:50%;background:#4ade80;border:2.5px solid #0e0e11;box-sizing:content-box;margin:-2.5px}
+.acct .tag,.acct .car{display:none;font-style:normal;color:#6c7078}
+.acct .tag{font-size:11px;font-weight:700;letter-spacing:.14em}
+.acct .car{font-size:11px}
+.acct #acct.on .tag,.acct #acct.on .car{display:inline}
+#menu{position:absolute;right:0;top:66px;min-width:170px;background:#14141a;border:1px solid #2c2c31;border-radius:14px;padding:6px;z-index:10;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#menu[hidden]{display:none}
+#menu button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:10px 12px;font-size:14px;font-weight:600;color:var(--text)}
+#menu button:hover{background:#202026}
+.acct #menu #signout{padding:10px 12px;color:#ff8a80;font-weight:600}
+@media(max-width:560px){.acct .tag{display:none!important}.acct #acct{font-size:14px}}
+</style>
+</head>
+<body>
+
+<main id="home">
+  <div class="acct"><button id="modbtn" type="button" hidden>Mod menu</button><div class="who"><button id="acct" type="button" aria-haspopup="true" aria-expanded="false"><i></i><span></span><em class="tag">EARLY TESTER</em><b class="car" aria-hidden="true">&#9662;</b></button><div id="menu" hidden><button id="mprofile" type="button">My profile</button><button id="signout" type="button">Sign out</button></div></div></div>
+  <h1 class="logo"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANAAAABKCAYAAADKWdpRAAAFWklEQVR42u2dPXLjRhCFXw8A/ilnsiXmCpQ7UaSqTfYIjOhz2JF9CgVWtEdwoipFTJwrUA6WAjM28cuZcQDCZrFWuyAwhAjifQkVkCLR0w/dM4PpFuyI4uwTOsZkPHhr43u6aJu27dvURm2NpWskitKFFbnr8kCLtcvyb6XUq7F25WpALsE+te0K/PojO7qyjyfyMBoFf3XNRr4VubMIFl0eaCtYKMG6UBBerM7DTZwVwhJ5aiIm5Q/mW437volHCdYK2wcAb9+3fXP/UYK1MdkSQPcEBABXo4sY8+nu9X6jg+IOqvDF2vwuitLGQroQG1UmTgFjzE1Vp25inzjtrp38Sxz8vcGcbpJgUQopSfJOpgnkjCP1pV/g1QgYDzG1CBZQ/u91Jrt9iz6EAvqmCLYa9xb47VgRbRI6Cum5gEoRiQRfYO1nDj2hgGpgLKbKH8z7urdDKKDGUcgY3B4ThTgHIhTQQRTq6+YooYCc4HnBjGkcoYBqpnEAoESuq7yfq3CEAiKEAnI4DzK43T2qUjliEVJJQExZCGkgIN5xCWEK5wxGZPIePgDE6e4sTVfmLxbTtqKk1nmoJFh3+ZH7WndWhRdAvVZ6r6B39vlPQJ7Iw+4wU3d+tD+YA+0ccuuifZzcpAwAkVVr9hF5YjxrgSjOPm3i7I9/YtuIKLF/R1G6oEUJ50CEUECEUECEUECEkGr4fb3wY5ZpCbm4CMSnJQgF9MEYa1d0AdIohYuidKGKjcnuOL7BbZPPbxJAkIdXFQotds0+Wudhm2VyndnHbH/pbGnfYdCv0rVKsIaxlXbPy9K+55YybpJvp7GxCVotk2tF7praJ06xxhFVUM9KQJ4XzLiAwDkgqelLWudhny54kxRpzjHpQtecVSmuLrYWgfomHt/DM4w8cOiJk5tVn8SjBGuzzb6ywDxhBKoRecw2+zqZDB9dTdgJ8S9ZNEARdQT5nzDyMJkMGXkIBfQjwSiFF0EeirVLWEBEnkajgM21CAX0PSc/PJruql8qUzjSixRuPMR0kwBG415JsIbCzOo8dNHikZBezIH22zti1y+VLR7Jqehdi8ckyX/isBNGoBpC2iS4F9gwirOj5kWc/5DeRqBDIdRp8cjCioQC2sEWj4QCahiF2OKRnN0cqO00p6lT71o8Pla9tqbf15Z9lNCpOyeg3QnPR0/cPuV8eORaiVwbY25Uw9K+4yGmaV60eKyymOBCPMpmP7s6ZlDaRYlcG2tX+532jLWrEfe7uheBxNrlaDw49R7LWxRnK63zOwSBg7u1XANoxdmUUq8n2IN6O3glXZ0DtX2Iq82UkatwhIsIh2kQWzwSCogQCujsYQpHKCBCKKCPgXMg8h7OlrGNMTdRnK3KvYmT/WJrP3v+YDYM2jMSD9SdFmMxVSi6D551tDnw7cl48OZEQFcjIM0HcwDzNsJa09K+5Ayds9gcn2udh+dc7LP0ba3zMEnyB2cRqG/lgYnzFLnwn+A0qYXLLKJYVApgTLbkHIhzII5hg/9FARHiIKUjhFBAR1y4wkvV5/e4kUooIEIoIELOi1526S5bPApQacOXq3CEEWj/ogVrsXbJSqWEEaiOgC6gxSNhBPqw9O3YFo+EUED4v9HWscVPuIxNei+g/S51jD6EAqopnjotHrkKR3q3iFCmXb6HZ0EeNmnxyPNA5KIFVDp42Yl7J5wXrQvhCLBq0uKRkHcFJNYu0xyzLl+EIA+jBBAAMHa5y05frxwUetQ6D30veE7zBkb2AKNPeEr3I21v7dLzMWtin04KxwNg1KtEcfZpvzRsFymP2Z5iY9SVfS514eIS/KeJ3/0LMzuZNndb8iUAAAAASUVORK5CYII=" alt="BFL" width="208" height="74"></h1>
+  <div class="sbox">
+    <form class="sbar" id="form" autocomplete="off" role="search">
+      <input id="q" type="search" placeholder="Search for a player" aria-label="Search for a player" spellcheck="false">
+      <button type="submit">Search</button>
+    </form>
+    <div class="sug" id="sug" role="listbox"></div>
+  </div>
+  <p id="msg" role="status"></p>
+</main>
+
+<dialog id="mod"><form id="mform" autocomplete="off">
+<div class="mh"><h2>Mod menu</h2><button type="button" id="mclose">Close</button></div>
+<label>Player to edit<select id="mpick"></select></label>
+<div id="mfields" class="mgrid"></div><div id="mstats"></div>
+<div id="mmsg" role="status"></div>
+<div class="mbtn"><button type="button" id="mdel" class="danger">Delete player</button><button type="submit" class="go">Save player</button></div>
+</form></dialog>
+<section id="profile"></section>
+
+<script>
+/* ---------- PLAYER DATA: add or edit players here ----------
+   cats order: heading, shooting, passing, dribbling, defending, intelligence
+   each cat = [overall, [sub-stats in the order listed in CATS below]]  */
+const CATS=[
+ ['Mossing',['Aerial Duels','Heading Accuracy']],
+ ['Shooting',['Shot Accuracy','Finishing','Penalties']],
+ ['Passing',['Vision','Long Passing','Short Passing','Crossing','Through Balls','Quick Passing']],
+ ['Dribbling',['First Touch','Ball Control','1v1 Dribbling','Skill Moves']],
+ ['Defending',['Tackling','React Battles','Marking','1v1 Defending','Blocking']],
+ ['Intelligence',['Attacking Awareness','Defensive Awareness','Positioning','Off-Ball Movement','Decision Making','Game Reading','Composure','Creativity']]
+];
+let PLAYERS=[];
+
+/* ---------- app ---------- */
+const $=s=>document.querySelector(s);
+const home=$('#home'),prof=$('#profile'),q=$('#q'),sug=$('#sug'),msg=$('#msg');
+const find=n=>PLAYERS.find(p=>p.name.toLowerCase()===n.trim().toLowerCase());
+const col=v=>v>=75?'var(--green)':v>=55?'var(--yellow)':'var(--red)';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let act=-1;
+let me=null,isAdmin=false,meAvatar=null;
+const acctBtn=$('#acct'),outBtn=$('#signout');
+function paintAcct(){const ic=acctBtn.querySelector('i');ic.textContent=meAvatar?'':(me?me[0].toUpperCase():'?');ic.style.backgroundImage=meAvatar?`url("${meAvatar}")`:'';ic.style.backgroundSize='cover';ic.style.backgroundPosition='center';acctBtn.querySelector('span').textContent=me||'Sign in with Roblox';acctBtn.setAttribute('aria-label',me?'Account menu':'Sign in with Roblox');outBtn.hidden=!me;acctBtn.classList.toggle('on',!!me);if(!me)$('#menu').hidden=true;$('#modbtn').hidden=!(me&&isAdmin)}
+acctBtn.onclick=e=>{e.stopPropagation();if(!me){location.href='/auth/login';return}const m=$('#menu');m.hidden=!m.hidden;acctBtn.setAttribute('aria-expanded',String(!m.hidden))};
+$('#mprofile').onclick=()=>{$('#menu').hidden=true;go(me)};
+document.addEventListener('click',e=>{if(!e.target.closest('.who')){$('#menu').hidden=true;acctBtn.setAttribute('aria-expanded','false')}});
+addEventListener('keydown',e=>{if(e.key==='Escape')$('#menu').hidden=true});
+outBtn.onclick=()=>{fetch('/auth/logout',{method:'POST'}).then(()=>{me=null;paintAcct()})};
+paintAcct();
+
+
+function suggest(){
+  const t=q.value.trim().toLowerCase();act=-1;
+  const m=t?PLAYERS.filter(p=>p.name.toLowerCase().includes(t)):[];
+  sug.innerHTML=m.map(p=>`<button type="button" data-p="${esc(p.name)}" role="option"><span>${esc(p.name)}</span><small>${p.ovr} ${p.pos}</small></button>`).join('');
+  sug.classList.toggle('on',m.length>0);
+}
+q.addEventListener('input',()=>{msg.textContent='';suggest()});
+q.addEventListener('keydown',e=>{
+  const items=[...sug.children];if(!items.length)return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();act=(act+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;items.forEach((b,i)=>b.classList.toggle('act',i===act));}
+  if(e.key==='Enter'&&act>=0){e.preventDefault();go(items[act].dataset.p)}
+});
+sug.onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.p)};
+$('#form').onsubmit=e=>{
+  e.preventDefault();
+  const p=find(q.value);
+  if(p)go(p.name);
+  else msg.textContent=q.value.trim()?`No player named "${q.value.trim()}" in the league. Check the spelling and try again.`:'Type a player name to search.';
+};
+function go(n){location.hash='#/player/'+encodeURIComponent(n)}
+
+function render(){
+  const m=location.hash.match(/^#\/player\/(.+)$/);
+  if(!m){prof.style.display='none';home.style.display='flex';document.title='Player Search';q.value='';sug.classList.remove('on');return}
+  const name=decodeURIComponent(m[1]),p=find(name);
+  home.style.display='none';prof.style.display='block';window.scrollTo(0,0);
+  if(!p){prof.innerHTML=`<div class="top"><button class="back" onclick="location.hash=''">Back to search</button></div><p class="notfound">No player named "${esc(name)}" in the league.</p>`;return}
+  document.title=p.name+' · Player Profile';
+  const ab=['MOS','SHO','PAS','DRI','DEF','INT'];
+  const stars='★'.repeat(p.skill)+`<span class="off">${'★'.repeat(5-p.skill)}</span>`;
+  prof.innerHTML=`
+  <div class="top"><button class="back" onclick="location.hash=''">Back to search</button><h1>Player Profile</h1></div>
+  <div class="main">
+    <div class="card" aria-label="Player card">
+      <div class="ovr">${p.ovr}<small>${esc(p.pos)}</small></div>
+      ${p.avatar?`<img class="av" src="${esc(p.avatar)}" alt="">`:''}<svg class="av" viewBox="0 0 100 100" aria-hidden="true"${p.avatar?' style="display:none"':''}><rect x="12" y="78" width="76" height="30" rx="8" fill="#c0392b"/><rect x="30" y="62" width="40" height="24" fill="#e8b878"/><rect x="26" y="22" width="48" height="46" rx="8" fill="#f0c48c"/><rect x="22" y="12" width="56" height="20" rx="6" fill="${p.hair}"/><rect x="34" y="42" width="8" height="4" fill="#222"/><rect x="58" y="42" width="8" height="4" fill="#222"/><rect x="42" y="56" width="16" height="3" fill="#7a3b2e"/></svg>
+      <div class="cn" style="font-size:${Math.min(24,Math.max(12,Math.floor(190/(p.name.length*.58))))}px">${esc(p.name)}</div>
+      <div class="cs">${p.cats.map((c,i)=>`<div>${ab[i]}<b>${c[0]}</b></div>`).join('')}</div>
+      <div class="meta">${esc(p.nation)} · ${esc(p.club)}</div>
+    </div>
+    <div>
+      <h2 class="name">${esc(p.name)}</h2>
+      <div class="facts">
+        <div><div class="k">SKILL MOVES</div><div class="v stars">${stars}</div></div>
+        <div><div class="k">MARKET VALUE</div><div class="v">${esc(p.value)}</div></div>
+      </div>
+    </div>
+    <div class="ps">
+      <h3>Play<i>◆</i>Styles+</h3>
+      <div class="pills">${p.plus.map(s=>`<span class="pill plus">${esc(s)}</span>`).join('')}</div>
+      <h3>Trophy cabinet</h3>
+      <div class="cab">${(p.trophies&&p.trophies.length)?p.trophies.map(t=>`<div class="tro"><svg viewBox="0 0 24 24" width="36" height="36" fill="#f6d56b" aria-hidden="true"><path d="M7 3h10v2h3v3c0 2.2-1.8 4-4 4h-.3A5 5 0 0 1 13 14.9V17h3v2H8v-2h3v-2.9A5 5 0 0 1 8.3 12H8C5.8 12 4 10.2 4 8V5h3V3zM6 7v1c0 1.1.9 2 2 2V7H6zm12 0h-2v3c1.1 0 2-.9 2-2V7z"/></svg><b>${esc(t[0])}</b><span>x${t[1]}</span></div>`).join(''):'<p class="empty">No trophies yet.</p>'}</div>
+    </div>
+  </div>
+  <div class="cats">${CATS.map((c,i)=>`
+    <div class="cat"><h4><span>${c[0]}</span><span>${p.cats[i][0]}</span></h4>
+    ${c[1].map((n,j)=>{const v=p.cats[i][1][j];return `<div class="row"><div><span>${n}</span><b>${v}</b></div><div class="bar"><i style="width:${v}%;background:${col(v)}"></i></div></div>`}).join('')}</div>`).join('')}
+  </div>`;
+}
+/* ---- mod menu ---- */
+const mod=$('#mod'),mf=$('#mform'),mpick=$('#mpick'),mmsg=$('#mmsg'),V=id=>$('#'+id).value;
+const F=(id,label,type,extra)=>`<label>${label}<input id="${id}" type="${type||'text'}" ${extra||''}></label>`;
+$('#mfields').innerHTML=F('f_name','Roblox username','text','required pattern="[A-Za-z0-9_]{3,20}" maxlength="20"')+F('f_ovr','Overall (1-99)','number','min="1" max="99" required')+F('f_pos','Position','text','maxlength="4" required')+F('f_skill','Skill moves (1-5)','number','min="1" max="5" required')+F('f_value','Market value','text','maxlength="10"')+F('f_nation','Nation code','text','maxlength="4"')+F('f_club','Club','text','maxlength="30"')+F('f_hair','Hair colour (fallback face)','color')+F('f_plus','PlayStyles+ (comma between)','text')+F('f_trophies','Trophies: Name:count, comma between','text');
+$('#mstats').innerHTML=CATS.map((c,i)=>`<fieldset><legend>${c[0]}</legend>${c[1].map((n,j)=>F(`s_${i}_${j}`,n,'number','min="0" max="99" required')).join('')}</fieldset>`).join('');
+function fill(p){
+  const d=p||{name:'',ovr:70,pos:'CM',skill:2,value:'',nation:'',club:'',hair:'#2b2b2b',plus:[],trophies:[],cats:CATS.map(c=>[0,c[1].map(()=>50)])};
+  ['name','ovr','pos','skill','value','nation','club','hair'].forEach(k=>$('#f_'+k).value=d[k]??'');
+  $('#f_plus').value=(d.plus||[]).join(', ');
+  $('#f_trophies').value=(d.trophies||[]).map(t=>t[0]+':'+t[1]).join(', ');
+  CATS.forEach((c,i)=>c[1].forEach((_,j)=>$(`#s_${i}_${j}`).value=d.cats[i][1][j]));
+}
+function refreshPick(v){mpick.innerHTML='<option value="">New player</option>'+PLAYERS.map(p=>`<option>${esc(p.name)}</option>`).join('');mpick.value=v||'';fill(v?find(v):null)}
+async function api(method,url,body){const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Something went wrong.');return j}
+$('#modbtn').onclick=()=>{refreshPick('');mmsg.textContent='';mod.showModal()};
+$('#mclose').onclick=()=>mod.close();
+mpick.onchange=()=>{fill(mpick.value?find(mpick.value):null);mmsg.textContent=''};
+mf.onsubmit=async e=>{e.preventDefault();
+  const p={name:V('f_name').trim(),ovr:+V('f_ovr'),pos:V('f_pos').trim(),skill:+V('f_skill'),value:V('f_value').trim(),nation:V('f_nation').trim(),club:V('f_club').trim(),hair:V('f_hair'),
+    plus:V('f_plus').split(',').map(s=>s.trim()).filter(Boolean),
+    trophies:V('f_trophies').split(',').map(s=>s.trim()).filter(Boolean).map(s=>{const k=s.lastIndexOf(':');return k<0?[s,1]:[s.slice(0,k).trim(),+s.slice(k+1)||1]}),
+    cats:CATS.map((c,i)=>[null,c[1].map((_,j)=>+V(`s_${i}_${j}`))])};
+  try{PLAYERS=await api('POST','/api/admin/players',p);refreshPick(p.name);mmsg.textContent=`Saved ${p.name}. They can now be searched.`}catch(err){mmsg.textContent=err.message}};
+$('#mdel').onclick=async()=>{const n=mpick.value;if(!n){mmsg.textContent='Pick a player to delete first.';return}
+  if(!confirm(`Delete ${n} from the league?`))return;
+  try{PLAYERS=await api('DELETE','/api/admin/players/'+encodeURIComponent(n));refreshPick('');mmsg.textContent=`Deleted ${n}.`}catch(err){mmsg.textContent=err.message}};
+addEventListener('hashchange',render);
+Promise.all([fetch('/api/players').then(r=>r.json()),fetch('/api/me').then(r=>r.json())]).then(([pl,m])=>{PLAYERS=pl;me=m.name||null;isAdmin=!!m.isAdmin;meAvatar=/^https:\/\//.test(m.avatar||'')?m.avatar:null;paintAcct();render()}).catch(()=>{msg.textContent='Could not load players. Refresh the page.'});
+</script>
+</body>
+</html>
